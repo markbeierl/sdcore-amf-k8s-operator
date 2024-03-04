@@ -221,7 +221,7 @@ class AMFOperatorCharm(CharmBase):
                     ports=[
                         ServicePort(name="ngapp", port=NGAPP_PORT, protocol="SCTP"),
                     ],
-                    type="LoadBalancer",
+                    type="NodePort",
                 ),
             ),
             field_manager=DEFAULT_FIELD_MANAGER,
@@ -474,8 +474,8 @@ class AMFOperatorCharm(CharmBase):
         """
         if configured_hostname := self._get_external_amf_hostname_config():
             return configured_hostname
-        elif lb_hostname := self._amf_external_service_hostname():
-            return lb_hostname
+        #elif lb_hostname := self._amf_external_service_hostname():
+        #    return lb_hostname
         return self._amf_hostname()
 
     def _set_n2_information(self) -> None:
@@ -705,7 +705,8 @@ class AMFOperatorCharm(CharmBase):
             Service, name=f"{self.model.app.name}-external", namespace=self.model.name
         )
         try:
-            return service.status.loadBalancer.ingress[0].ip  # type: ignore[attr-defined]
+            return service.spec.clusterIP
+            #status.loadBalancer.ingress[0].ip  # type: ignore[attr-defined]
         except (AttributeError, TypeError):
             logger.error(
                 "Service '%s-external' does not have an IP address:\n%s",
